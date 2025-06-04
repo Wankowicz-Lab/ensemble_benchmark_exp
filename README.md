@@ -44,6 +44,16 @@
    sh scripts/models/run_sam2.sh 7lfo 1
    ```
 
+5. **Run AlphaFlow Individually:**
+  - Split CSV needs to be generated, then alignments need to be downloaded. 
+  ```bash
+  python scripts/generate_split_seq_csv.py dataset
+  sh scripts/make_alphaflow_alignments.sh
+  ```
+  This first line will generate a csv file < dataset >_seqs.csv
+  This second line will make the ./bin/alignment/\*/a3m/\*.a3m alignment files
+  
+
 **TODO:** The main handler should call all these scripts and then pipeline the analysis. This supports individual calling given a PDB at the moment.
 
 ---

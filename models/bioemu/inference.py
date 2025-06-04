@@ -40,6 +40,7 @@ def runBioemu(pdb_id, output_path, structure_fasta, num_samples):
            output_dir=temp_output_dir)
 
     makeABigPDBFile(pdb_id, temp_output_dir, output_path)
+    shutil.copyfile(os.path.join(temp_output_dir, 'samples.xtc'), './PDBs/' + pdb_id.lower() + '/bioemu.xtc')
     shutil.rmtree(temp_output_dir, ignore_errors=True)
 
 if __name__ == "__main__":

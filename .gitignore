@@ -3,3 +3,6 @@
 *.dcd
 PDBs/
 *.pyc
+bin/alignment/
+bin/weights/*.pt
+bin/alphaflow_out
