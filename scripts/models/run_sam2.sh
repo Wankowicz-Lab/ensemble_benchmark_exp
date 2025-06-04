@@ -29,5 +29,6 @@ if [ ! -f "$ABSOLUTE_PDB_DIR/sam2.traj.dcd" ]; then
 fi
 
 python ./scripts/helpers/dcd_to_pdb.py "$ABSOLUTE_PDB_DIR/sam2.traj.dcd" "$ABSOLUTE_PDB_DIR/sam2.top.pdb" "$OUTPUT_FILE"
+python ./scripts/helpers/align_to_exp_data.py "$OUTPUT_FILE" "$PDB_DIR/${PDB_ID,,}_final.pdb"
 
 echo "[run_sam2.sh] Saved $PDB_ID to $OUTPUT_FILE"

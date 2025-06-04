@@ -19,10 +19,10 @@ if __name__ == "__main__":
     ensemble_path = sys.argv[1]
     topology_path = sys.argv[2]
 
-    if not os.path.exists(dcd_path):
+    if not os.path.exists(ensemble_path):
         print(f"Error: DCD file '{ensemble_path}' does not exist.")
         sys.exit(1)
-    if not os.path.exists(top_path):
+    if not os.path.exists(topology_path):
         print(f"Error: Topology file '{topology_path}' does not exist.")
         sys.exit(1)
 
