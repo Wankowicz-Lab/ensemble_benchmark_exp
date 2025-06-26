@@ -3,6 +3,17 @@
 *.dcd
 PDBs/
 *.pyc
+
 bin/alignment/
 bin/weights/*.pt
 bin/alphaflow_out
+bin/openfold_data
+bin/misc
+bin/libcifpp
+
+cg_coefficients
+
+devscripts/
+splits/*
+bin/graphs/*
+temp

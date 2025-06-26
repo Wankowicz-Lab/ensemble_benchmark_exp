@@ -2,7 +2,7 @@ import mdtraj as md
 import os
 import sys
 
-def align_to_exp_data(ensemble_path, topology_path):
+def align_with_mdtraj(ensemble_path, topology_path):
     # Load the reference structure (topology)
     topology = md.load(topology_path)
     # Load the ensemble (multi-frame PDB or trajectory)
@@ -13,7 +13,7 @@ def align_to_exp_data(ensemble_path, topology_path):
     ensemble.superpose(topology, atom_indices=atom_indices)
     # Save the aligned ensemble if needed
     ensemble.save(ensemble_path)
-    print(f'[align_to_exp_data.py] Aligned ensemble to topology and saved to {ensemble_path}')
+    print(f'[align_with_mdtraj.py] Aligned ensemble to topology and saved to {ensemble_path}')
 
 if __name__ == "__main__":
     ensemble_path = sys.argv[1]
@@ -27,5 +27,5 @@ if __name__ == "__main__":
         sys.exit(1)
 
     
-    align_to_exp_data(ensemble_path, topology_path)
+    align_with_mdtraj(ensemble_path, topology_path)
     sys.exit(0)
