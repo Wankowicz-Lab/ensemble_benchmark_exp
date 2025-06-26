@@ -45,7 +45,7 @@ python ./openfold/run_pretrained_openfold.py \
     $ABS_BIN_ROOT/inputs \
     $ABS_BIN_ROOT/cifs \
     --output_dir $ABS_BIN_ROOT/outputs \
-    --config_preset "model_3" \
+    --config_preset "model_1" \
     --model_device "cuda:0" \
     --use_precomputed_alignments $ABS_BIN_ROOT/alignments
 
@@ -61,15 +61,15 @@ OUT_DIR="$ABS_BIN_ROOT/outputs/predictions"
 
 for file in "$OUT_DIR"/*.pdb; do
     if [ -f "$file" ]; then
-        if [[ ! "$file" =~ _model_3_relaxed\.pdb$ ]]; then
-            echo "[run_openfold.sh] Skipping file: $file (not a model_3_relaxed output)"
+        if [[ ! "$file" =~ _model_1_relaxed\.pdb$ ]]; then
+            echo "[run_openfold.sh] Skipping file: $file (not a model_1_relaxed output)"
             continue
         fi
         echo "[run_openfold.sh] Processing output file: $file"
-        # 1pw2_model_3_relaxed.pdb -> 1pw2.pdb
+        # 1pw2_model_1_relaxed.pdb -> 1pw2.pdb
         BASENAME=$(basename "$file")
         BASENAME_NO_EXT="${BASENAME%.*}"
-        PDB_ID="${BASENAME_NO_EXT/_model_3_relaxed/}"
+        PDB_ID="${BASENAME_NO_EXT/_model_1_relaxed/}"
         
         echo $PDB_ID
 
