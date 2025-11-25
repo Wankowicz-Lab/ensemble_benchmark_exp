@@ -70,11 +70,14 @@ def make_rmsf_ediam_plot(pdb_id, rmsf_df, ediam_df, output_path, predictor):
             plt.Line2D([0], [0], color='purple', lw=2, label='EDIAm (Density Fit - inverted)')
         ]
 
-        plt.title(f"RMSF vs EDIAm for {pdb_id} - Predictor: {predictor}", fontsize=16)
-        plt.legend(handles=data_legend_elements, loc='upper right', fontsize=12)
+        plt.title(f"RMSF vs EDIAm for {pdb_id} - Predictor: {predictor}", fontsize=32)
+        plt.legend(handles=data_legend_elements, loc='upper right', fontsize=24)
         
-        plt.xlabel('Residue Number', fontsize=14)
-        plt.ylabel('RMSF (Å) / -EDIAm', fontsize=14)
+        plt.xlabel('Residue Number', fontsize=42)
+        plt.ylabel('RMSF (Å) / -EDIAm', fontsize=42)
+
+        
+        ax.tick_params(axis='both', which='major', labelsize=24)
 
         plt.axhline(y=0, color='black', linestyle='-', alpha=0.5, lw=1.5, zorder=2)
         
@@ -103,6 +106,51 @@ def load_rmsf_data(pdb_id):
     except Exception as e:
         print(f"[ediam_rmsf_relationship.py] Error reading RMSF data: {e}")
         return pd.DataFrame()
+
+
+def parse_density_fitness_csv(pdb_id):
+    file_path = f"./PDBs/{pdb_id}/analysis/density_fitness.json"
+    
+    if not os.path.exists(file_path):
+        print(f"[ediam_rmsf_relationship.py] File not found: {file_path}")
+        return pd.DataFrame()
+    
+    try:
+        all_data = []
+        parsed = json.load(open(file_path, 'r'))
+        predictors = parsed.get('predictor', [])
+        frames = parsed.get('frame', [])
+        metrics = parsed.get('metrics', [])
+        if not predictors or not frames or not metrics:
+            print(f"[ediam_rmsf_relationship.py] No valid data found in {file_path}")
+            return pd.DataFrame()
+        
+        allKeys = predictors.keys()
+        for key in allKeys:
+            predictor = predictors[key]
+            frame = frames[key]
+            thismetrics = metrics[key]
+            for metric in thismetrics:
+                all_data.append({
+                    'predictor': predictor,
+                    'frame': frame,
+                    'residue': metric.get('seqID', None),
+                    'aa': metric.get('compID', None),
+                    'RSCCS': metric.get('RSCCS', None),
+                    'RSR': metric.get('RSR', None),
+                    'EDIAm': metric.get('EDIAm', None),
+                    'chain': metric.get('asymID', None)
+                })
+           
+        ediam_df = pd.DataFrame(all_data)
+            
+        if not ediam_df.empty:
+            avg_ediam = ediam_df.groupby(['predictor', 'residue', 'aa'])['EDIAm'].mean().reset_index()
+            return avg_ediam
+    except Exception as e:
+        print(f"[ediam_rmsf_relationship.py] Error reading {file_path}: {e}")
+        return pd.DataFrame()
+
 
 def load_ediam_data(pdb_id):
     file_path = f"./PDBs/{pdb_id}/analysis/density_fitness.csv"
@@ -167,7 +215,7 @@ if __name__ == "__main__":
     output_path = sys.argv[3]
     
     rmsf_data = load_rmsf_data(pdb_id)
-    ediam_data = load_ediam_data(pdb_id)
+    ediam_data = parse_density_fitness_csv(pdb_id)
     
     if rmsf_data.empty:
         print(f"[ediam_rmsf_relationship.py] No RMSF data found for {pdb_id} with predictor {predictor}")

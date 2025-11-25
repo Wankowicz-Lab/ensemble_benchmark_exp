@@ -9,6 +9,7 @@ import sys
 import os
 import pandas as pd
 import shutil
+import random
 
 from bioemu.sample import main as sample
 from scripts.helpers import dcd_to_pdb

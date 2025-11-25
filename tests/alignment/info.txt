@@ -1,0 +1,14 @@
+This is to compare best alignment method among PDBs that caused problems for phaser
+
+phenix.refine data.hkl model.pdb main.number_of_macro_cycles=8 \
+  simulated_annealing=true strategy=rigid_body
+
+phenix.refine data.hkl model.pdb main.number_of_macro_cycles=8 \
+ strategy=rigid_body
+
+
+///
+
+
+phenix.refine ../1aho_final.mtz ../mdtraj.pdb main.number_of_macro_cycles=8 \
+  simulated_annealing=true strategy=rigid_body space_group="P 21 21 21"

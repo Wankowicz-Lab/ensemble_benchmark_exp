@@ -1,12 +1,16 @@
 #!/bin/bash
 # run_bioemu.sh <pdb_id> <sequence_count>
 
+# LOCK ISSUE FIX: export BIOEMU_COLABFOLD_DIR="/matterhorn/hd1/ahmed/bioemu-colabfold"
+
 set -e
 if [ "$#" -ne 2 ]; then
     echo "[run_bioemu.sh] A pdb id AND sequence count is required."
     exit 1
 fi
 
+rm -rf ~/.bioemu_embeds_cache # clear MSA cache to avoid same output
+ls ~/.bioemu_embeds_cache && echo "[run_bioemu.sh] Cleared BioEmu MSA cache."
 
 PDB_ID=$1
 PDB_DIR="./PDBs/${PDB_ID,,}"
@@ -18,14 +22,17 @@ if [ ! -f "$SEQ_FILE" ]; then
     exit 1
 fi
 
+
 SEQUENCE=$(cat "$SEQ_FILE")
 export PYTHONPATH=$(pwd):$PYTHONPATH
+
 
 mkdir -p "$PDB_DIR/bioemu_bin"
 rm -rf "$PDB_DIR/bioemu_bin/*"
 
 XTC_FILE="${PDB_DIR}/bioemu_bin/bioemu.xtc"
 
+echo "[run_bioemu.sh] Running BioEmu for $PDB_ID with $2 sequences."
 python ./models/bioemu/inference.py "$PDB_ID" "$OUTPUT_FILE" "$SEQUENCE" $2
 echo "[run_bioemu.sh] Saved backbone of $PDB_ID to $OUTPUT_FILE"
 
@@ -38,4 +45,8 @@ python ./scripts/helpers/dcd_to_pdb.py "$PDB_DIR/bioemu_bin/samples_sidechain_re
 echo "[run_bioemu.sh] Saved predicted ensemble of $PDB_ID to $ENSEMBLE_OUTPUT"
 
 python ./scripts/helpers/align_with_mdtraj.py "$ENSEMBLE_OUTPUT" "$PDB_DIR/${PDB_ID,,}_final.pdb"
-echo "[run_bioemu.sh] Aligned $ENSEMBLE_OUTPUT to original"
+echo "[run_bioemu.sh] Aligned $ENSEMBLE_OUTPUT to original with MDTRAJ. Aligning with PHASER now"
+
+bash ./scripts/helpers/align_with_phaser.sh "${PDB_ID,,}" bioemu
+echo "[run_bioemu.sh] Aligned $ENSEMBLE_OUTPUT to original with PHASER. Done."
+

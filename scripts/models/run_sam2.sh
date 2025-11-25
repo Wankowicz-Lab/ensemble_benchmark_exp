@@ -17,6 +17,11 @@ ABSOLUTE_PDB_DIR=$(realpath "$PDB_DIR")
 ABSOLUTE_NOWAT_PDB_PATH=$(realpath "$NOWAT_PDB_PATH")
 ABSOLUTE_SEQ_FILE=$(realpath "$SEQ_FILE")
 
+# if [ -e "$OUTPUT_FILE" ]; then # can add this to avoid re-running if errors occur.
+#     echo "[run_sam2.sh] Output file $OUTPUT_FILE already exists. Exiting."
+#     exit 0
+# fi
+
 cd ./models/sam2 || exit 1
 
 mkdir -p "$ABSOLUTE_PDB_DIR/sam2_bin"

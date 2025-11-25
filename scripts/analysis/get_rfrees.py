@@ -71,7 +71,7 @@ def make_rfrees(pdb_id, num_threads=3):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Calculate R-free values for protein model ensembles by predictors")
     parser.add_argument("pdb_id", help="PDB ID to process")
-    parser.add_argument("--threads", "-t", type=int, default=3, help="Number of threads to use")
+    parser.add_argument("--threads", "-t", type=int, default=5, help="Number of threads to use")
     
     args = parser.parse_args()
     pdb_id = args.pdb_id

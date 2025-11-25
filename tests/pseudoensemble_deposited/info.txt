@@ -1,0 +1,25 @@
+Pseudoensemble RMSF V2
+
+This is to align multiple multiconformer PDBs of the same class and extract an RMSF from it to get a good baseline.
+- Inputs must be aligned
+
+----------------------------------------------
+
+- /inputs
+    - /cypa
+        - *.pdb
+    - /lysozyme
+        - *.pdb
+    - /ubi
+        - *.pdb
+
+
+
+CSV FORMAT:
+class,residue,rmsf
+cypa,0,0.1
+ubi,0,0.15 ...etc 
+
+
+
+

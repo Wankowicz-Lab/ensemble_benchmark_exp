@@ -2,6 +2,9 @@
 # download_alignment_cifs.py <dataset>
 # This script downloads the CIFs needed for OpenFold from the HHSearch hits
 
+# Use the batch script, only use this if you don't have a lot of things to download,
+# or you may get rate-limited.
+
 import os
 import sys
 import re

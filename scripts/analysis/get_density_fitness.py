@@ -58,7 +58,7 @@ def get_density_fitness(pdb_path, mtz_path, out_path):
     if (os.path.exists(out_path)):
         with open(out_path, 'r') as f:
             txt = f.read()
-            return txt
+            return txt.strip()
     
     return None
 
@@ -85,14 +85,14 @@ def process_frame(frame, frame_idx, predictor, pdb_id, mtz_path, main_temp_dir):
         return {
             "predictor": predictor,
             "frame": frame_idx,
-            "metrics": metrics,   # JSON in TXT format. Not parsed.
+            "metrics": json.loads(metrics),
         }
     except Exception as e:
         print(f"[get_density_fitness.py] ERROR processing {predictor} frame {frame_idx}: {e}")
         return None
 
 
-def make_density_fitnesses(pdb_id, num_threads=4):
+def make_density_fitnesses(pdb_id, num_threads=5):
     predictors = ['bioemu', 'alphaflow', 'sam2', 'boltz2', 'openfold']
     MTZ_PATH = f"./PDBs/{pdb_id}/{pdb_id.lower()}_final.mtz"
     metrics = []
@@ -143,8 +143,8 @@ def make_density_fitnesses(pdb_id, num_threads=4):
     csv = pd.DataFrame([r for r in metrics if r["metrics"] is not None])
     if not csv.empty:
         os.makedirs(f"./PDBs/{pdb_id}/analysis", exist_ok=True)
-        csv.to_csv(f"./PDBs/{pdb_id}/analysis/density_fitness.csv", index=False)
-        print(f"[get_density_fitness.py] Saved density_fitness.csv for {pdb_id} in ./PDBs/{pdb_id}/analysis/density_fitness.csv")
+        csv.to_json(f"./PDBs/{pdb_id}/analysis/density_fitness.json", index=False)
+        print(f"[get_density_fitness.py] Saved density_fitness.json for {pdb_id} in ./PDBs/{pdb_id}/analysis/density_fitness.csv")
     else:
         print(f"[get_density_fitness.py] No valid Density Fitness values calculated")
 
@@ -154,7 +154,7 @@ def make_density_fitnesses(pdb_id, num_threads=4):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Calculate Density Fitness values for protein model ensembles by predictors")
     parser.add_argument("pdb_id", help="PDB ID to process")
-    parser.add_argument("--threads", "-t", type=int, default=4, help="Number of threads to use")
+    parser.add_argument("--threads", "-t", type=int, default=5, help="Number of threads to use")
     
     args = parser.parse_args()
     pdb_id = args.pdb_id

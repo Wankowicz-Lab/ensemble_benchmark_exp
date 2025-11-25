@@ -1,6 +1,6 @@
 #!/bin/bash
 # run_alphaflow.sh <split_name> <sequence_count>
-set -e
+#set -e
 
 if [ "$#" -ne 2 ]; then
     echo "[run_alphaflow.sh] A split name AND sequence count is required."

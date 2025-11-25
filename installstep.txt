@@ -1,0 +1,74 @@
+(Installations on condas)
+
+- eb_base - Base/Auxiliary
+    - pip install sfcalculator-torch numpy mdtraj pandas biopython
+    - DONE
+    - CCTBX using conda "cctbx-base". installing using provided bootstrap.py did not work 
+
+- aflow-2
+    conda create -n aflow-2 python=3.9 -y
+    conda activate aflow-2
+    
+    conda install nvidia/label/cuda-11.8.0::cuda-toolkit
+
+    pip install numpy==1.21.2 pandas==1.5.3
+    pip install torch==1.12.1+cu113 -f https://download.pytorch.org/whl/torch_stable.html
+    pip install biopython==1.79 dm-tree==0.1.6 modelcif==0.7 ml-collections==0.1.0 scipy==1.7.1 absl-py einops
+    pip install pytorch_lightning==2.0.4 fair-esm mdtraj==1.9.9 wandb
+    
+    conda install pytorch==2.5.1 torchvision==0.20.1 torchaudio==2.5.1  pytorch-cuda=11.8 -c pytorch -c nvidia
+
+
+    # Fix for openfold installation issues
+    conda install -c conda-forge -y gcc_linux-64=12 gxx_linux-64=12 sysroot_linux-64=2.17
+    export CC="$CONDA_PREFIX/bin/x86_64-conda-linux-gnu-cc"
+    export CXX="$CONDA_PREFIX/bin/x86_64-conda-linux-gnu-c++"
+    export CUDAHOSTCXX="$CXX"
+    export CUDA_HOME="$CONDA_PREFIX"
+    export CUDAHOME="$CONDA_PREFIX"
+    export PATH="$CUDA_HOME/bin:$PATH"
+    export LD_LIBRARY_PATH="$CUDA_HOME/lib64:$LD_LIBRARY_PATH"
+
+    export CXXFLAGS="${CXXFLAGS} -std=c++17"
+    export CFLAGS="${CFLAGS} -std=c++17"
+
+    export TORCH_NVCC_FLAGS="--std=c++17 -Xcompiler -std=c++17 -allow-unsupported-compiler"
+    pip install 'openfold @ git+https://github.com/aqlaboratory/openfold.git@103d037' --no-build-isolation
+
+    pip install 'openfold @ git+https://github.com/aqlaboratory/openfold.git@103d037' --no-build-isolation
+    
+
+    
+
+
+
+- Bioemu: Conda for Bioemu 
+    - conda create -n bioemu python=3.11
+    - conda install nvidia/label/cuda-12.6.0::cuda-toolkit
+
+    - pip install bioemu
+    - pip install bioemu[md]
+
+    - clone & conda install hpacker from env.yaml; pip install -e . inside hpacker conda.
+    - DONE
+
+- Sam2
+    - conda create --name sam2 python=3.10
+    - pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu126
+    - cd models/sam2
+    - pip install -e .
+    - DONE
+
+- OpenFold
+    conda create -n openfold python=3.9 -y
+
+    # CHANGED LINE 872 OF templates.py TO:
+    >   if parsing_result.mmcif_object is not None and 'release_date' in parsing_result.mmcif_object.header:
+    BECAUSE keyerror release_date
+
+
+- boltz: Conda for Boltz-2 @ python=3.9
+    - conda create -n boltz python=3.9
+    - export PATH="/home/aslamaj/anaconda3/envs/boltz/bin:$PATH"
+    - pip install boltz[cuda] -U
+    - DONE

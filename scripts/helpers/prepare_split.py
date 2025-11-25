@@ -5,6 +5,7 @@ import os
 import requests
 import argparse
 import pdb_sequence_maker
+import gemmi
 
 def get_rid_of_water_and_ions(pdb_file_path, output_file_path):
     cleaned_lines = []
@@ -59,27 +60,72 @@ def download_pdb(pdb_id):
         else:
             print(f"[prepare_split.py] Failed to download MTZ from PDB_REDO: {pdb_id}")
 
-        mtz_url = f"https://pdb-redo.eu/db/{pdb_id}/{pdb_id}_final.cif"
-        mtz_output_path = os.path.join(pdb_dir, f"{pdb_id}_final.cif")
+        cif_url = f"https://pdb-redo.eu/db/{pdb_id}/{pdb_id}_final.cif"
+        cif_output_path = os.path.join(pdb_dir, f"{pdb_id}_final.cif")
         
-        if download_file(mtz_url, mtz_output_path):
+        if download_file(cif_url, cif_output_path):
             print(f"[prepare_split.py] Successfully downloaded CIF from PDB_REDO: {pdb_id}")
         else:
             print(f"[prepare_split.py] Failed to download CIF from PDB_REDO: {pdb_id}")
 
     else:
-        print(f"[prepare_split.py] PDB_REDO not available for {pdb_id}. Skipping...")
-        return False
-        # Commented because we aren't getting MTZ/CIF from RCSB and it'll become a problem
-        # rcsb_url = f"https://files.rcsb.org/download/{pdb_id}.pdb"
+        print(f"[prepare_split.py] PDB_REDO not available for {pdb_id}. Trying RCSB...")
         
-        # if download_file(rcsb_url, pdb_output_path):
-        #     print(f"[prepare_split.py] Successfully downloaded PDB from RCSB: {pdb_id}")
-        # else:
-        #     print(f"[prepare_split.py] Failed to download PDB for {pdb_id} from all sources")
-        #     return False
+        rcsb_pdb_url = f"https://files.rcsb.org/download/{pdb_id}.pdb"
+        rcsb_pdb_output = os.path.join(pdb_dir, f"{pdb_id}_final.pdb")
+        
+        if download_file(rcsb_pdb_url, rcsb_pdb_output):
+            print(f"[prepare_split.py] Successfully downloaded PDB from RCSB: {pdb_id}")
+            
+            rcsb_cif_url = f"https://files.rcsb.org/download/{pdb_id}.cif"
+            rcsb_cif_output = os.path.join(pdb_dir, f"{pdb_id}_final.cif")
+            
+            if download_file(rcsb_cif_url, rcsb_cif_output):
+                print(f"[prepare_split.py] Successfully downloaded CIF from RCSB: {pdb_id}")
+            else:
+                print(f"[prepare_split.py] Failed to download CIF from RCSB: {pdb_id}")
+            
+            rcsb_sf_url = f"https://files.rcsb.org/download/{pdb_id}-sf.cif"
+            rcsb_sf_output = os.path.join(pdb_dir, f"{pdb_id}_sf.cif")
+            
+            if download_file(rcsb_sf_url, rcsb_sf_output):
+                print(f"[prepare_split.py] Successfully downloaded structure factors from RCSB: {pdb_id}")
+                
+                mtz_output = os.path.join(pdb_dir, f"{pdb_id}_final.mtz")
+                if convert_cif_to_mtz(rcsb_sf_output, mtz_output, pdb_id):
+                    os.rename(rcsb_sf_output, os.path.join(pdb_dir, f"{pdb_id}_sf_original.cif"))
+                    
+                else:
+                    print(f"[prepare_split.py] Keeping structure factors in CIF format: {pdb_id}")
+            else:
+                print(f"[prepare_split.py] No structure factors available from RCSB: {pdb_id}")
+                
+        else:
+            print(f"[prepare_split.py] Failed to download PDB for {pdb_id} from all sources")
+            return False
     
     return True
+
+
+
+def convert_cif_to_mtz(cif_path, mtz_path, pdb_id):
+    try:
+        sf_doc = gemmi.cif.read(cif_path)
+        mtz = gemmi.Mtz()
+        mtz.read_sf_mmcif(sf_doc)
+        mtz.write_to_file(mtz_path)
+        
+        if os.path.exists(mtz_path):
+            print(f"[prepare_split.py] Successfully converted CIF to MTZ using gemmi: {pdb_id}")
+            return True
+    except ImportError:
+        print(f"[prepare_split.py] gemmi not available. Install with: pip install gemmi")
+    except Exception as e:
+        print(f"[prepare_split.py] gemmi conversion failed for {pdb_id}: {e}")
+    
+    print(f"[prepare_split.py] Could not convert CIF to MTZ for {pdb_id}.")
+    return False
+
 
 def main():
     parser = argparse.ArgumentParser(description='Initialize PDBs from a split file')
@@ -105,9 +151,13 @@ def main():
             # Downloaded the PDB successfully, now lets extract the sequence
             new_original_path = os.path.join("PDBs", pdb_id, f"{pdb_id}_final.pdb")
             thisPDBSeqArray = pdb_sequence_maker.get_sequence_array(new_original_path)
-            usingSequence = thisPDBSeqArray[0]
             if (len(thisPDBSeqArray) > 1):
                 print(f"[prepare_split.py] Multiple sequences found for {pdb_id}, using the first one.")
+            if len(thisPDBSeqArray) == 0:
+                print(f"[prepare_split.py] No sequences found for {pdb_id}.")
+                usingSequence = None
+                continue
+            usingSequence = thisPDBSeqArray[0]
             if usingSequence:
                 seq_file_path = os.path.join("PDBs", pdb_id, f"{pdb_id}_seq.txt")
                 with open(seq_file_path, 'w') as seq_file:
@@ -115,7 +165,6 @@ def main():
                 print(f"[prepare_split.py] Sequence for {pdb_id} saved to {seq_file_path}")
             
             # Make non-water PDB
-            new_original_path 
             cleaned_pdb_path = os.path.join("PDBs", pdb_id, f"{pdb_id}_nowat.pdb")
             if get_rid_of_water_and_ions(new_original_path, cleaned_pdb_path):
                 print(f"[prepare_split.py] Cleaned PDB for {pdb_id} saved to {cleaned_pdb_path}")

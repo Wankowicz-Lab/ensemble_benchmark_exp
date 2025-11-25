@@ -9,6 +9,8 @@ import sys
 import json
 import seaborn as sns
 
+predictors = ['sam2', 'alphaflow', 'bioemu', 'openfold', 'boltz2']
+
 def make_ediam_violin(pdb_id, df, output_path):
     print(f"[ediam_violin.py] Creating violin plot for {pdb_id}...")
     
@@ -38,7 +40,7 @@ def make_ediam_violin(pdb_id, df, output_path):
         alpha=0.4, 
         jitter=True,
         dodge=False,
-        order=['sam2', 'alphaflow', 'bioemu'], 
+        order=predictors, 
         zorder=1
     )
     
@@ -49,7 +51,7 @@ def make_ediam_violin(pdb_id, df, output_path):
         palette=colors,
         inner='quartile',
         scale='width',
-        order=['sam2', 'alphaflow', 'bioemu',],
+        order=predictors,
         alpha=0.75,
         zorder=10
     )
@@ -59,9 +61,9 @@ def make_ediam_violin(pdb_id, df, output_path):
     #     if predictor in means:
     #         plt.plot(i, means[predictor], 'o', color='white', markersize=10, markeredgecolor='black')
             
-    plt.xlabel('Ensemble Predictor', fontsize=14)
-    plt.ylabel('EDIAm Score (Electron Density for Individual Atoms Score)', fontsize=14)
-    plt.title(f'EDIAm Score of Residues of Conformations by Ensemble Predictions - {pdb_id.upper()}', fontsize=16)
+    plt.xlabel('Ensemble Predictor', fontsize=42)
+    plt.ylabel('EDIAm Score', fontsize=42)
+    plt.title(f'ED Fit of Predictions - {pdb_id.upper()}', fontsize=32)
     
     plt.ylim(-0.05, 1.05)
     
@@ -71,62 +73,84 @@ def make_ediam_violin(pdb_id, df, output_path):
     counts = df.groupby('predictor')['EDIAm'].count()
     ax.set_xticklabels([
         f"{predictor}\n(n={counts.get(predictor, 0)})"
-        for predictor in ['sam2', 'alphaflow', 'bioemu']
+        for predictor in predictors
     ])
     
+    ax.tick_params(axis='both', which='major', labelsize=20)
+
     plt.tight_layout()
     plt.savefig(output_path, dpi=300)
     print(f"[ediam_violin.py] Saved violin plot to {output_path}")
 
 
 def parse_density_fitness_csv(pdb_id):
-    file_path = f"./PDBs/{pdb_id}/analysis/density_fitness.csv"
+    file_path = f"./PDBs/{pdb_id}/analysis/density_fitness.json"
     
     if not os.path.exists(file_path):
         print(f"[ediam_violin.py] File not found: {file_path}")
         return pd.DataFrame()
     
     try:
-        lines = []
-        with open(file_path, 'r') as f:
-            for line in f:
-                if not line.startswith('#'):
-                    lines.append({
-                        'predictor': line.split(',')[0].strip(),
-                        'frame': line.split(',')[1].strip(),
-                        'metrics': (','.join(line.split(',')[2:]).strip())[1:-1]  # Remove surrounding quotes cuz JSON parsing
-                    })
+        # lines = []
+        # with open(file_path, 'r') as f:
+        #     for line in f:
+        #         if not line.startswith('#'):
+        #             lines.append({
+        #                 'predictor': line.split(',')[0].strip(),
+        #                 'frame': line.split(',')[1].strip(),
+        #                 'metrics': (','.join(line.split(',')[2:]).strip())[1:-1]  # Remove surrounding quotes cuz JSON parsing
+        #             })
         
-        df = pd.DataFrame(lines)
-        if 'metrics' in df.columns:
-            all_data = []
-            
-            for _, row in df.iterrows():
-                predictor = row['predictor']
-                frame = row['frame']
+        all_data = []
+        parsed = json.load(open(file_path, 'r'))
+        predictors = parsed.get('predictor', [])
+        frames = parsed.get('frame', [])
+        metrics = parsed.get('metrics', [])
+        if not predictors or not frames or not metrics:
+            print(f"[ediam_violin.py] No valid data found in {file_path}")
+            return pd.DataFrame()
+        
+        allKeys = predictors.keys()
+        for key in allKeys:
+            predictor = predictors[key]
+            frame = frames[key]
+            thismetrics = metrics[key]
+            for metric in thismetrics:
+                all_data.append({
+                    'predictor': predictor,
+                    'frame': frame,
+                    'residue': metric.get('seqID', None),
+                    'aa': metric.get('compID', None),
+                    'RSCCS': metric.get('RSCCS', None),
+                    'RSR': metric.get('RSR', None),
+                    'EDIAm': metric.get('EDIAm', None),
+                    'chain': metric.get('asymID', None)
+                })
+            # for _, row in df.iterrows():
+            #     predictor = row['predictor']
+            #     frame = row['frame']
+            #     metrics = row['metrics']
                 
-                try:
-                    metrics = json.loads(row['metrics'])
+            #     try:
                     
-                    for residue_data in metrics:
-                        if 'EDIAm' in residue_data:
-                            all_data.append({
-                                'predictor': predictor,
-                                'frame': frame,
-                                'residue': residue_data.get('seqID', None),
-                                'aa': residue_data.get('compID', None),
-                                'RSCCS': residue_data['RSCCS'],
-                                'RSR': residue_data.get('RSR', None),
-                                'EDIAm': residue_data.get('EDIAm', None),
-                                'chain': residue_data.get('asymID', None)
-                            })
-                except json.JSONDecodeError:
-                    print(row['metrics'])
-                    print(f"[ediam_violin.py] Error parsing metrics JSON for {predictor} frame {frame}")
-                except Exception as e:
-                    print(f"[ediam_violin.py] Error processing metrics: {e}")
+            #         for residue_data in metrics:
+            #             if 'EDIAm' in residue_data:
+            #                 all_data.append({
+            #                     'predictor': predictor,
+            #                     'frame': frame,
+            #                     'residue': residue_data.get('seqID', None),
+            #                     'aa': residue_data.get('compID', None),
+            #                     'RSCCS': residue_data['RSCCS'],
+            #                     'RSR': residue_data.get('RSR', None),
+            #                     'EDIAm': residue_data.get('EDIAm', None),
+            #                     'chain': residue_data.get('asymID', None)
+            #                 })
+            #     except json.JSONDecodeError:
+            #         print(f"[ediam_violin.py] Error parsing metrics JSON for {predictor} frame {frame}")
+            #     except Exception as e:
+            #         print(f"[ediam_violin.py] Error processing metrics: {e}")
             
-            return pd.DataFrame(all_data)
+        return pd.DataFrame(all_data)
             
     except Exception as e:
         print(f"[ediam_violin.py] Error reading {file_path}: {e}")

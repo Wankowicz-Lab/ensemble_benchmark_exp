@@ -3,7 +3,7 @@
 
 # note: openfold needs to be installed separately and the path will need to be changed:
 set -e
-OPENFOLD_PATH="/home/aslamaj/workdir/openfold/bin" # (contains openfold clone)
+OPENFOLD_PATH="./models" # (contains openfold clone)
 
 
 if [ -z "$1" ]; then
@@ -66,7 +66,7 @@ echo "[prepare_openfold.sh] Generating alignments with openfold..."
 
 cd $OPENFOLD_PATH || exit 1
 
-RELRESOURCES="./openfold/resources"
+RELRESOURCES="/home/aslamaj/databases"
 export BASE_DATA_DIR=$(realpath $RELRESOURCES)
 
 python ./openfold/scripts/precompute_alignments.py \

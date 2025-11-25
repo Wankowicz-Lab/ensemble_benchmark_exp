@@ -3,13 +3,17 @@
 *.dcd
 PDBs/
 *.pyc
+*.png
+*.csv
 
 bin/alignment/
-bin/weights/*.pt
 bin/alphaflow_out
 bin/openfold_data
 bin/misc
 bin/libcifpp
+bin/timings
+bin/weights
+bin/graphs
 
 cg_coefficients
 
@@ -17,3 +21,12 @@ devscripts/
 splits/*
 bin/graphs/*
 temp
+tests/alignment/input/*
+tests/alignment/output/*
+
+
+models/alphaflow/*
+models/alphaflow_old/*
+models/bioemu/*
+models/openfold/*
+models/sam2/*
